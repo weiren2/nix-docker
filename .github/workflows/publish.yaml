@@ -11,20 +11,6 @@ env:
   REGISTRY: index.docker.io
 
 jobs:
-  check:
-    name: Check if the base image has any updates
-    runs-on: ubuntu-latest
-    outputs:
-      needs-updating: ${{ steps.check.outputs.needs-updating }}
-    steps:
-      - name: Check updates from Docker Hub
-        id: check
-        uses: lucacome/docker-image-update-checker@v2
-        with:
-          base-image: node:latest
-          image: ${{ secrets.IMAGE_NAME }}:latest
-          platforms: linux/amd64,linux/arm64
-
   push_to_registry:
     name: Push Docker image to Docker Hub
     needs: check
