@@ -9,10 +9,27 @@ on:
 
 env:
   REGISTRY: index.docker.io
+  IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.IMAGE_NAME }}
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
 
 jobs:
+  # check:
+  #   name: Check if the base image has any updates
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     needs-updating: ${{ steps.check.outputs.needs-updating }}
+  #   steps:
+  #     - name: Check updates from Docker Hub
+  #       id: check
+  #       uses: lucacome/docker-image-update-checker@v2
+  #       with:
+  #         base-image: node:latest
+  #         image: ${{ env.IMAGE_NAME }}:latest
+  #         platforms: linux/amd64,linux/arm64
+
   push_to_registry:
     name: Push Docker image to Docker Hub
+    # needs: check
     if: (github.event_name == 'schedule' && needs.check.outputs.needs-updating == 'true') || (github.event_name == 'push')
     runs-on: ubuntu-latest
     permissions:
@@ -33,14 +50,14 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          username: ${{ env.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_ACCESS_TOKEN }}
 
       - name: Extract metadata (tags, labels) on Docker Hub
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.IMAGE_NAME }}
+          images: ${{ env.IMAGE_NAME }}
 
       - name: Build and push Docker image
         id: push
@@ -49,11 +66,11 @@ jobs:
           platforms: linux/amd64,linux/arm64
           context: .
           push: true
-          tags: ${{ secrets.IMAGE_NAME }}:latest
+          tags: ${{ env.IMAGE_NAME }}:latest
 
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@v1
         with:
-          subject-name: ${{ env.REGISTRY }}/${{ secrets.IMAGE_NAME }}
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
