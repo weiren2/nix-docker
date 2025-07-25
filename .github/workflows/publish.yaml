@@ -81,5 +81,5 @@ jobs:
     permissions:
       actions: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: gautamkrishnar/keepalive-workflow@v2
+      - name: Keep the workflow alive using API
+        uses: liskin/gh-workflow-keepalive@v1
